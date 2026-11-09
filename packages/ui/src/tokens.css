@@ -1,0 +1,35 @@
+/* ============================================================
+   Design tokens Genesus — identidad visual oficial (§3)
+   Fondos claros SIEMPRE; tipografía oscura. Paleta de 4 acentos.
+   ============================================================ */
+:root {
+  --indigo: #7b68ff;
+  --teal: #00d4a0;
+  --gold: #ffc040;
+  --rose: #f06292;
+
+  --bg: #fafbfc;
+  --surface: #ffffff;
+  --surface2: #f0f4f8;
+  --ink: #14121f;
+  --muted: #6b6a85;
+  --border: #e8e6f2;
+  --border2: #d9d6ea;
+
+  --indigo-soft: #f1eeff;
+  --teal-soft: #e5fbf5;
+  --gold-soft: #fff6e0;
+  --rose-soft: #fdedf3;
+
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(20, 18, 31, 0.04), 0 8px 24px rgba(123, 104, 255, 0.07);
+
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+::selection {
+  background: var(--indigo);
+  color: #fff;
+}

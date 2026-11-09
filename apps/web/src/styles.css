@@ -1,0 +1,48 @@
+@import '@genesus/ui/tokens.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-bg text-ink font-body antialiased;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+@layer components {
+  .panel {
+    @apply bg-surface border border-line rounded-card shadow-card;
+  }
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-default;
+  }
+  .btn-primary {
+    @apply btn bg-indigo text-white hover:bg-[#6a57f0];
+  }
+  .btn-ghost {
+    @apply btn bg-surface2 text-ink hover:bg-line;
+  }
+  .input {
+    @apply w-full rounded-xl border border-line2 bg-surface px-3 py-2 text-sm outline-none focus:border-indigo;
+  }
+  .label {
+    @apply block text-xs font-semibold uppercase tracking-wider text-muted mb-1;
+  }
+}
+
+/* Prosa markdown de la Bóveda (clon de Obsidian) */
+.vault-prose h1 { @apply font-display text-xl font-extrabold mt-4 mb-2; }
+.vault-prose h2 { @apply font-display text-lg font-bold mt-4 mb-2; }
+.vault-prose h3 { @apply font-display text-base font-bold mt-3 mb-1; }
+.vault-prose h4 { @apply font-semibold mt-2 mb-1; }
+.vault-prose p { @apply text-sm leading-relaxed my-2; }
+.vault-prose ul { @apply list-disc pl-6 my-2 text-sm; }
+.vault-prose li { @apply my-0.5; }
+.vault-prose blockquote { @apply border-l-2 border-indigo pl-3 my-2 text-sm text-muted italic; }
+.vault-prose code { @apply font-mono text-[12px] bg-surface2 rounded px-1 py-0.5; }
+.vault-prose pre { @apply bg-surface2 rounded-xl p-3 my-2 overflow-x-auto; }
+.vault-prose pre code { @apply bg-transparent p-0; }
+.vault-prose hr { @apply border-line my-3; }
+.vault-prose a { @apply text-indigo underline; }
+.vault-prose a.wikilink { @apply text-teal no-underline font-medium hover:underline cursor-pointer; }
+.vault-prose strong { @apply font-bold; }

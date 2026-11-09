@@ -1,0 +1,1 @@
+[SIMULADO · claude-opus-4-8] Respuesta de prueba sin API key. Prompt recibido (230 caracteres).

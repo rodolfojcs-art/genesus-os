@@ -1,0 +1,17 @@
+{
+  "mission_title": "Misión simulada (sin API key)",
+  "summary": "Plan generado por el simulador local. Configura ANTHROPIC_API_KEY para ejecución real.",
+  "tasks": [
+    {
+      "id": "t1",
+      "department_id": "DSGN-001",
+      "title": "Borrador simulado",
+      "objective": "Demostrar el pipeline sin costo",
+      "deliverable": "Texto simulado",
+      "depends_on": [],
+      "model_tier": "sonnet",
+      "est_cost_usd": 0
+    }
+  ],
+  "est_total_cost_usd": 0
+}

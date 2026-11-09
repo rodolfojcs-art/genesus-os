@@ -1,0 +1,57 @@
+# ---------------------------------------------------------------------
+# Dependencias y cachés
+# ---------------------------------------------------------------------
+node_modules/
+.turbo/
+.pnpm-store/
+coverage/
+*.tsbuildinfo
+
+# ---------------------------------------------------------------------
+# SECRETOS — nunca a git.
+# El patrón sin barra aplica a CUALQUIER nivel, así que cubre
+# apps/server/.env, apps/web/.env y las copias dentro de los builds.
+# .env.example SÍ se versiona: es la plantilla sin valores.
+# ---------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+secrets.json
+
+# ---------------------------------------------------------------------
+# Salida de build
+#   OJO: el patrón `dist/` NO cubría `dist-bundle/` ni `release/`.
+#   `release/` son ~180 MB del empaquetado de Electron y además lleva
+#   una copia del .env del servidor dentro. Fuera de git los dos.
+# ---------------------------------------------------------------------
+dist/
+dist-bundle/
+release/
+out/
+build/
+*.exe
+*.7z
+*.zip
+
+# ---------------------------------------------------------------------
+# Datos generados en tiempo de ejecución (se regeneran solos)
+# ---------------------------------------------------------------------
+supabase/seed.generated.json
+disk-index.json
+undo-log.json
+routines.json
+
+# ---------------------------------------------------------------------
+# Logs, respaldos y basura del sistema
+# ---------------------------------------------------------------------
+*.log
+npm-debug.log*
+pnpm-debug.log*
+*.bak
+*.bak-*
+.DS_Store
+Thumbs.db
+desktop.ini

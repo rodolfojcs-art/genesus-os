@@ -1,0 +1,24 @@
+{
+  "name": "genesus-os",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.5.2",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "seed": "pnpm --filter @genesus/agents seed",
+    "desktop": "pnpm --filter @genesus/web build && pnpm --filter @genesus/desktop start",
+    "desktop:bundle": "pnpm --filter @genesus/web build && node scripts/bundle-server.mjs",
+    "desktop:dist": "pnpm desktop:bundle && pnpm --filter @genesus/desktop build:win"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "turbo": "^2.3.3",
+    "typescript": "^5.6.3"
+  }
+}

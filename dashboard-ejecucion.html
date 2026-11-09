@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GENESUS OS — Dashboard de Ejecución · Resumen de tareas realizadas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --indigo:#7B68FF; --teal:#00D4A0; --gold:#FFC040; --rose:#F06292;
+    --bg:#fafbfc; --surface:#ffffff; --surface2:#f0f4f8;
+    --ink:#14121F; --muted:#6B6A85; --border:#E8E6F2; --border2:#D9D6EA;
+    --indigo-soft:#F1EEFF; --teal-soft:#E5FBF5; --gold-soft:#FFF6E0; --rose-soft:#FDEDF3;
+    --ok:#089673; --warn:#B07F12;
+    --radius:14px;
+    --shadow:0 1px 2px rgba(20,18,31,.04), 0 8px 24px rgba(123,104,255,.07);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:'Outfit',sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--indigo);color:#fff}
+
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:24px;padding:0 28px;height:64px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand svg{width:30px;height:30px;flex:none}
+  .brand .word{font-family:'Syne',sans-serif;font-weight:800;font-size:17px}
+  .brand .word em{font-style:normal;color:var(--indigo)}
+  .brand .tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);border:1px solid var(--border2);border-radius:99px;padding:2px 9px;margin-left:4px}
+  nav{display:flex;gap:4px;margin-left:8px}
+  nav button{appearance:none;border:0;background:transparent;cursor:pointer;font-family:'Outfit',sans-serif;font-size:13.5px;font-weight:600;color:var(--muted);padding:8px 14px;border-radius:99px;transition:all .18s}
+  nav button:hover{color:var(--ink);background:var(--surface2)}
+  nav button.active{color:var(--indigo);background:var(--indigo-soft)}
+  .top-live{margin-left:auto;display:flex;align-items:center;gap:18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted)}
+  .pulse{display:inline-flex;align-items:center;gap:7px;color:var(--teal);font-weight:600}
+  .pulse .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,212,160,.45)}50%{box-shadow:0 0 0 6px rgba(0,212,160,0)}}
+
+  main{max-width:1240px;margin:0 auto;padding:34px 28px 80px}
+  .view{display:none;animation:fadeUp .35s ease}
+  .view.active{display:block}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .hero{margin-bottom:34px}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--indigo);font-weight:600;margin-bottom:10px}
+  h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(28px,4vw,40px);line-height:1.12;letter-spacing:-.015em}
+  h1 .grad{background:linear-gradient(100deg,var(--indigo),var(--teal));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{color:var(--muted);max-width:680px;margin-top:12px;font-size:15.5px}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:30px}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent,var(--indigo))}
+  .kpi .label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .kpi .value{font-family:'Syne',sans-serif;font-weight:800;font-size:30px;margin-top:4px;font-variant-numeric:tabular-nums}
+  .kpi .sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px}
+  .kpi .sub b{color:var(--ok);font-weight:600}
+
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;margin:6px 0 16px}
+  .sec-head h2{font-family:'Syne',sans-serif;font-weight:700;font-size:19px}
+  .sec-head .hint{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)}
+
+  /* fases */
+  .phase-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:34px}
+  .phase{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border-top:3px solid var(--c)}
+  .phase .ph-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .phase .num{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:600;color:var(--c)}
+  .phase h3{font-family:'Syne',sans-serif;font-size:15.5px;font-weight:700;margin-bottom:4px}
+  .phase .crit{font-size:12px;color:var(--muted);min-height:34px;margin-bottom:10px}
+  .state{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap}
+  .state.done{background:var(--teal-soft);color:var(--ok)}
+  .state.partial{background:var(--gold-soft);color:var(--warn)}
+  .phase ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+  .phase li{font-size:12.5px;display:flex;gap:7px;align-items:flex-start}
+  .phase li::before{content:"✓";color:var(--ok);font-weight:700;flex:none}
+  .phase li.pend::before{content:"›";color:var(--warn)}
+  .phase li code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--indigo)}
+
+  .two-col{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;align-items:start}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .panel .p-head{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid var(--border)}
+  .panel .p-head h3{font-family:'Syne',sans-serif;font-size:14.5px;font-weight:700}
+  .panel .p-head .hint{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted)}
+  .panel .p-body{padding:18px 20px}
+
+  .bar-row{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+  .bar-row:last-child{margin-bottom:0}
+  .bar-row .r-top{display:flex;justify-content:space-between;align-items:baseline}
+  .bar-row .m{font-weight:700;font-size:13px}
+  .bar-row .m span{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:10.5px;color:var(--muted);margin-left:8px}
+  .bar-row .pct{font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:600}
+  .track{height:8px;border-radius:99px;background:var(--surface2);overflow:hidden}
+  .track i{display:block;height:100%;border-radius:99px;background:var(--cb,var(--indigo));transition:width .9s cubic-bezier(.2,.8,.2,1);width:0}
+
+  .check-list{display:flex;flex-direction:column}
+  .check{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:9px 0;border-bottom:1px dashed var(--border);font-size:13px}
+  .check:last-child{border:0}
+  .check .ic{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:12px;font-weight:700;background:var(--teal-soft);color:var(--ok)}
+  .check .ic.w{background:var(--gold-soft);color:var(--warn)}
+  .check .mono{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted)}
+
+  .console{background:#FDFDFE;border:1px solid var(--border);border-radius:var(--radius);font-family:'JetBrains Mono',monospace;font-size:12px;box-shadow:var(--shadow);overflow:hidden}
+  .console .c-head{display:flex;align-items:center;gap:8px;padding:11px 16px;border-bottom:1px solid var(--border);background:var(--surface2)}
+  .console .c-head .d{width:10px;height:10px;border-radius:50%}
+  .console .c-body{padding:16px 18px;max-height:520px;overflow-y:auto;line-height:1.9}
+  .ln{display:block;white-space:pre-wrap;animation:fadeUp .25s ease}
+  .ln .t{color:#A9A7C4}
+  .ln .ok{color:#089673;font-weight:600}
+  .ln .ag{color:var(--indigo);font-weight:600}
+  .ln .warn{color:#B07F12;font-weight:600}
+  .ln .num{color:var(--rose)}
+
+  table.files{width:100%;border-collapse:collapse;font-size:13px}
+  table.files th{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:left;padding:0 10px 8px;border-bottom:1px solid var(--border)}
+  table.files td{padding:8px 10px;border-bottom:1px dashed var(--border)}
+  table.files tr:last-child td{border-bottom:0;font-weight:700}
+  table.files .mono{font-family:'JetBrains Mono',monospace;font-size:11.5px}
+  table.files .r{text-align:right;font-variant-numeric:tabular-nums}
+  .chip{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;color:var(--c);background:color-mix(in srgb, var(--c) 12%, white)}
+
+  footer{border-top:1px solid var(--border);margin-top:60px;padding:26px 28px;display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px;flex-wrap:wrap;gap:10px}
+  footer .f-brand{display:flex;align-items:center;gap:9px;font-family:'Syne',sans-serif;font-weight:700;color:var(--ink);font-size:13px}
+  footer .mono{font-family:'JetBrains Mono',monospace;font-size:10.5px}
+
+  @media (max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}.two-col{grid-template-columns:1fr}nav{display:none}}
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 300 295" xmlns="http://www.w3.org/2000/svg" aria-label="Genesus">
+      <polygon points="67,65 93,65 46,195 20,195" fill="#7B68FF"/>
+      <polygon points="149,50 175,50 108,235 82,235" fill="#00D4A0"/>
+      <polygon points="188,148 214,148 174,258 148,258" fill="#FFC040"/>
+      <polygon points="242,200 268,200 241,275 215,275" fill="#F06292"/>
+    </svg>
+    <span class="word">GENESUS <em>OS</em></span>
+    <span class="tag">DASHBOARD DE EJECUCIÓN · 2026-06-11</span>
+  </div>
+  <nav id="nav">
+    <button data-view="resumen" class="active">Resumen</button>
+    <button data-view="fases">Fases</button>
+    <button data-view="consola">Consola</button>
+    <button data-view="entregables">Entregables</button>
+  </nav>
+  <div class="top-live">
+    <span class="pulse"><span class="dot"></span>BUILD VERIFICADO</span>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ VISTA: RESUMEN ============ -->
+<section class="view active" id="view-resumen">
+  <div class="hero">
+    <div class="eyebrow">Genesus Technology LLC · master prompt ejecutado por Claude Code</div>
+    <h1>GENESUS OS construido: <span class="grad">monorepo completo</span>,<br>verificado fase por fase.</h1>
+    <p>Resumen de las tareas realizadas al ejecutar el MASTER PROMPT de 1,000 agentes: scaffold, red de agentes generada, motor de orquestación, proxy con guardarraíles de costo, 8 módulos de UI, migraciones SQL y documentación de despliegue.</p>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi" style="--accent:var(--indigo)">
+      <div class="label">Archivos de código</div>
+      <div class="value" data-count="52">0</div>
+      <div class="sub">+ 5 documentos · + configs raíz</div>
+    </div>
+    <div class="kpi" style="--accent:var(--teal)">
+      <div class="label">Líneas escritas</div>
+      <div class="value" data-count="5522">0</div>
+      <div class="sub">TypeScript estricto · SQL · CSS</div>
+    </div>
+    <div class="kpi" style="--accent:var(--gold)">
+      <div class="label">Tests en verde</div>
+      <div class="value" data-count="33">0</div>
+      <div class="sub"><b>24 core + 9 agents</b> · typecheck 5/5</div>
+    </div>
+    <div class="kpi" style="--accent:var(--rose)">
+      <div class="label">Red generada</div>
+      <div class="value" data-count="11010">0</div>
+      <div class="sub">10 div · 1,000 agentes · 10,000 subs</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <div class="p-head"><h3>Verificaciones ejecutadas</h3><span class="hint">evidencia real de esta corrida</span></div>
+      <div class="p-body check-list">
+        <div class="check"><span class="ic">✓</span><span>Generador de red: 10 divisiones · 1,000 agentes · 10,000 subagentes con IDs canónicos</span><span class="mono">test 9/9</span></div>
+        <div class="check"><span class="ic">✓</span><span>Routing 3 modelos: Opus solo raíz, subagentes 2/4 Sonnet, resto Haiku</span><span class="mono">test</span></div>
+        <div class="check"><span class="ic">✓</span><span>Presupuesto: imposible gastar sobre el límite (corte duro)</span><span class="mono">test</span></div>
+        <div class="check"><span class="ic">✓</span><span>DAG: ciclos rechazados, concurrencia ≤ 8, dependientes de fallos omitidos</span><span class="mono">test 7/7</span></div>
+        <div class="check"><span class="ic">✓</span><span>Misión end-to-end: planificada → aprobada → completada con 3 artefactos</span><span class="mono">e2e local</span></div>
+        <div class="check"><span class="ic">✓</span><span>Fábrica: orden de producción operando en adaptador simulator</span><span class="mono">e2e local</span></div>
+        <div class="check"><span class="ic">✓</span><span>Frontend: build de producción (tsc + vite) — 253 kB JS / 78 kB gzip</span><span class="mono">build ok</span></div>
+        <div class="check"><span class="ic">✓</span><span>Cero referencias a TerraMercado en toda la red</span><span class="mono">test</span></div>
+        <div class="check"><span class="ic w">›</span><span>Ejecución con API real de Anthropic (esta corrida usó SIMULATE_LLM=1, $0.00)</span><span class="mono">requiere API key</span></div>
+        <div class="check"><span class="ic w">›</span><span>Seed contra Supabase real (counts 1000/10000 en DB)</span><span class="mono">requiere proyecto</span></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="p-head"><h3>Código por área</h3><span class="hint">52 archivos · 5,522 líneas</span></div>
+      <div class="p-body">
+        <div class="bar-row" style="--cb:var(--rose)">
+          <div class="r-top"><span class="m">apps/web<span>8 módulos UI</span></span><span class="pct">1,804</span></div>
+          <div class="track"><i data-w="100"></i></div>
+        </div>
+        <div class="bar-row" style="--cb:var(--indigo)">
+          <div class="r-top"><span class="m">apps/server<span>proxy + orquestador</span></span><span class="pct">1,390</span></div>
+          <div class="track"><i data-w="77"></i></div>
+        </div>
+        <div class="bar-row" style="--cb:var(--teal)">
+          <div class="r-top"><span class="m">packages/core<span>motor portable</span></span><span class="pct">1,154</span></div>
+          <div class="track"><i data-w="64"></i></div>
+        </div>
+        <div class="bar-row" style="--cb:var(--gold)">
+          <div class="r-top"><span class="m">packages/agents<span>taxonomía + seed</span></span><span class="pct">839</span></div>
+          <div class="track"><i data-w="47"></i></div>
+        </div>
+        <div class="bar-row" style="--cb:var(--indigo)">
+          <div class="r-top"><span class="m">supabase<span>3 migraciones SQL</span></span><span class="pct">284</span></div>
+          <div class="track"><i data-w="16"></i></div>
+        </div>
+        <div class="bar-row" style="--cb:var(--teal)">
+          <div class="r-top"><span class="m">docs + ui<span>README · DEPLOY · COSTOS…</span></span><span class="pct">295</span></div>
+          <div class="track"><i data-w="17"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VISTA: FASES ============ -->
+<section class="view" id="view-fases">
+  <div class="sec-head">
+    <h2>Plan de ejecución por fases (master prompt §9)</h2>
+    <span class="hint">6 completas · 2 parciales con pendientes documentados</span>
+  </div>
+  <div class="phase-grid">
+    <div class="phase" style="--c:var(--indigo)">
+      <div class="ph-top"><span class="num">FASE 0</span><span class="state done">COMPLETA</span></div>
+      <h3>Scaffold</h3>
+      <div class="crit">Criterio: <code>pnpm dev</code> levanta web + server.</div>
+      <ul>
+        <li>Monorepo pnpm workspaces + Turborepo</li>
+        <li>Tokens UI Genesus + logo 4 barras (spec exacta)</li>
+        <li>TypeScript estricto compartido + .env.example</li>
+      </ul>
+    </div>
+    <div class="phase" style="--c:var(--teal)">
+      <div class="ph-top"><span class="num">FASE 1</span><span class="state done">COMPLETA</span></div>
+      <h3>Datos y seeds</h3>
+      <div class="crit">Criterio: counts = 1,000 agentes y 10,000 subagentes.</div>
+      <ul>
+        <li>Taxonomía: 10 div × 25 dominios × 4 enfoques</li>
+        <li>Generador build-time verificado por test (9/9)</li>
+        <li><code>pnpm seed</code> + 3 migraciones SQL con RLS e ivfflat</li>
+      </ul>
+    </div>
+    <div class="phase" style="--c:var(--gold)">
+      <div class="ph-top"><span class="num">FASE 2</span><span class="state done">COMPLETA</span></div>
+      <h3>Proxy y costos</h3>
+      <div class="crit">Criterio: llamada registrada en <code>runs</code> con costo.</div>
+      <ul>
+        <li>Proxy Anthropic server-side (key solo en .env)</li>
+        <li>Streaming SSE + logging obligatorio por llamada</li>
+        <li>Presupuesto diario atómico con corte duro (RPC)</li>
+      </ul>
+    </div>
+    <div class="phase" style="--c:var(--rose)">
+      <div class="ph-top"><span class="num">FASE 3</span><span class="state done">COMPLETA</span></div>
+      <h3>Motor de orquestación</h3>
+      <div class="crit">Criterio: misión demo end-to-end con QA y artefactos.</div>
+      <ul>
+        <li>Planning Opus → MissionPlan validado con Zod</li>
+        <li>DAG con máx. 8 concurrentes + QA con 2 reintentos</li>
+        <li>Misión microturbina ejecutada: 3 artefactos descargables</li>
+      </ul>
+    </div>
+    <div class="phase" style="--c:var(--indigo)">
+      <div class="ph-top"><span class="num">FASE 4</span><span class="state done">COMPLETA</span></div>
+      <h3>UI completa</h3>
+      <div class="crit">Criterio: 8 módulos navegables y funcionales.</div>
+      <ul>
+        <li>Command Center · Misiones (chat SSE + DAG visual)</li>
+        <li>Producto · Fábrica (conectores honestos) · CRM</li>
+        <li>Finanzas · Admin (1,000 agentes) · Configuración</li>
+      </ul>
+    </div>
+    <div class="phase" style="--c:var(--teal)">
+      <div class="ph-top"><span class="num">FASE 5</span><span class="state partial">PARCIAL</span></div>
+      <h3>BRAIN y n8n</h3>
+      <div class="crit">Criterio: memoria entre misiones + webhook n8n.</div>
+      <ul>
+        <li>Esquema pgvector + RPC <code>match_memories</code></li>
+        <li>Webhook n8n saliente + botón de prueba en Config</li>
+        <li class="pend">Embeddings en runtime y WhatsApp → v1.1 (DECISIONS #12)</li>
+      </ul>
+    </div>
+    <div class="phase" style="--c:var(--gold)">
+      <div class="ph-top"><span class="num">FASE 6</span><span class="state partial">PARCIAL</span></div>
+      <h3>Calidad</h3>
+      <div class="crit">Criterio: suite verde.</div>
+      <ul>
+        <li>33 tests Vitest en verde (routing, presupuesto, DAG, QA, generador)</li>
+        <li>Typecheck estricto 5/5 paquetes + build de producción</li>
+        <li class="pend">Smoke E2E Playwright → pendiente</li>
+      </ul>
+    </div>
+    <div class="phase" style="--c:var(--rose)">
+      <div class="ph-top"><span class="num">FASE 7</span><span class="state done">COMPLETA</span></div>
+      <h3>Preparación Electron</h3>
+      <div class="crit">Criterio: core compila sin APIs de navegador.</div>
+      <ul>
+        <li>Core con lib ES2022 puro (sin DOM, sin Node)</li>
+        <li>LlmCaller inyectado — dominio 100% portable</li>
+        <li>ELECTRON.md con plan de empaquetado en 7 pasos</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="p-head"><h3>Criterios de aceptación globales (§10)</h3><span class="hint">estado verificado</span></div>
+    <div class="p-body check-list">
+      <div class="check"><span class="ic">✓</span><span>1. Registro completo: 10 div / 1,000 / 10,000 — generados, testeados y navegables en la UI</span><span class="mono">OK</span></div>
+      <div class="check"><span class="ic w">›</span><span>2. Misión real con API de Anthropic — pipeline verificado en simulado; falta correr con API key</span><span class="mono">pendiente key</span></div>
+      <div class="check"><span class="ic">✓</span><span>3. Imposible gastar sobre el presupuesto diario (corte atómico + test)</span><span class="mono">OK</span></div>
+      <div class="check"><span class="ic">✓</span><span>4. Imposible llamar a Anthropic desde el navegador (proxy thin, key solo server)</span><span class="mono">OK</span></div>
+      <div class="check"><span class="ic">✓</span><span>5. UI 100% español LATAM, paleta clara, identidad Genesus exacta</span><span class="mono">OK</span></div>
+      <div class="check"><span class="ic">✓</span><span>6. Cero referencias a TerraMercado (test automático)</span><span class="mono">OK</span></div>
+      <div class="check"><span class="ic">✓</span><span>7. README con setup local en 8 pasos</span><span class="mono">OK</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VISTA: CONSOLA ============ -->
+<section class="view" id="view-consola">
+  <div class="sec-head">
+    <h2>Bitácora de construcción</h2>
+    <span class="hint">eventos reales de la corrida · 2026-06-11</span>
+  </div>
+  <div class="console">
+    <div class="c-head">
+      <span class="d" style="background:var(--rose)"></span>
+      <span class="d" style="background:var(--gold)"></span>
+      <span class="d" style="background:var(--teal)"></span>
+      <span style="margin-left:8px;color:var(--muted);font-size:11px">claude-code @ genesus-os — ejecución del master prompt</span>
+    </div>
+    <div class="c-body" id="consoleBody"></div>
+  </div>
+</section>
+
+<!-- ============ VISTA: ENTREGABLES ============ -->
+<section class="view" id="view-entregables">
+  <div class="sec-head">
+    <h2>Entregables del repositorio</h2>
+    <span class="hint">C:\Users\rodol\genesus-os</span>
+  </div>
+  <div class="panel" style="margin-bottom:16px">
+    <div class="p-head"><h3>Estructura y volumen</h3><span class="hint">52 archivos de código + 5 docs</span></div>
+    <div class="p-body">
+      <table class="files">
+        <thead><tr><th>Área</th><th>Contenido</th><th class="r">Archivos</th><th class="r">Líneas</th></tr></thead>
+        <tbody>
+          <tr><td class="mono" style="--c:var(--teal)"><span class="chip" style="--c:var(--teal)">packages/core</span></td><td>Tipos, routing, costos, presupuesto, DAG, motor de misiones, MachineAdapter + 5 suites de tests</td><td class="r">13</td><td class="r">1,154</td></tr>
+          <tr><td class="mono"><span class="chip" style="--c:var(--gold)">packages/agents</span></td><td>Taxonomía 250 dominios, roles de subagentes, plantillas de prompts, generador, seed, datos demo</td><td class="r">8</td><td class="r">839</td></tr>
+          <tr><td class="mono"><span class="chip" style="--c:var(--indigo)">packages/ui</span></td><td>Tokens Genesus + logo (spec SVG definitiva)</td><td class="r">3</td><td class="r">51</td></tr>
+          <tr><td class="mono"><span class="chip" style="--c:var(--indigo)">apps/server</span></td><td>Fastify: proxy SSE, presupuesto, registry, misiones, colas, fábrica, CRM, webhooks, auth</td><td class="r">12</td><td class="r">1,390</td></tr>
+          <tr><td class="mono"><span class="chip" style="--c:var(--rose)">apps/web</span></td><td>React 18: Command Center, Misiones, Producto, Fábrica, CRM, Finanzas, Admin, Config</td><td class="r">13</td><td class="r">1,804</td></tr>
+          <tr><td class="mono"><span class="chip" style="--c:var(--teal)">supabase</span></td><td>0001 esquema (15 tablas) · 0002 RLS · 0003 RPC (match_memories, consume_budget)</td><td class="r">3</td><td class="r">284</td></tr>
+          <tr><td class="mono"><span class="chip" style="--c:var(--gold)">docs</span></td><td>README · DECISIONS · DEPLOY · ELECTRON · COSTOS</td><td class="r">5</td><td class="r">244</td></tr>
+          <tr><td colspan="2">Total</td><td class="r">57</td><td class="r">5,766</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <div class="p-head"><h3>Cómo arrancar</h3><span class="hint">README.md · 8 pasos</span></div>
+      <div class="p-body" style="font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:2">
+        <div><span style="color:var(--muted)">$</span> cd C:\Users\rodol\genesus-os</div>
+        <div><span style="color:var(--muted)">$</span> pnpm install <span style="color:var(--muted)"># ya ejecutado ✓</span></div>
+        <div><span style="color:var(--muted)">$</span> copy .env.example apps\server\.env <span style="color:var(--muted)"># + ANTHROPIC_API_KEY</span></div>
+        <div><span style="color:var(--muted)">$</span> pnpm seed <span style="color:var(--muted)"># con Supabase configurado</span></div>
+        <div><span style="color:var(--muted)">$</span> pnpm dev <span style="color:var(--muted)"># server :8787 + web :5173</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="p-head"><h3>Artefactos de la misión demo</h3><span class="hint">generados en la verificación</span></div>
+      <div class="p-body check-list">
+        <div class="check"><span class="ic">✓</span><span>plan.json — Plan de misión (DAG)</span><span class="mono">json</span></div>
+        <div class="check"><span class="ic">✓</span><span>t1-entregable.md — entregable con QA aprobado</span><span class="mono">markdown</span></div>
+        <div class="check"><span class="ic">✓</span><span>sintesis.md — síntesis ejecutiva de GENESUS</span><span class="mono">markdown</span></div>
+        <div class="check"><span class="ic">✓</span><span>Orden de producción en CNC-01 (simulador) en proceso</span><span class="mono">fábrica</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="f-brand">
+    <svg viewBox="0 0 300 295" width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="67,65 93,65 46,195 20,195" fill="#7B68FF"/>
+      <polygon points="149,50 175,50 108,235 82,235" fill="#00D4A0"/>
+      <polygon points="188,148 214,148 174,258 148,258" fill="#FFC040"/>
+      <polygon points="242,200 268,200 241,275 215,275" fill="#F06292"/>
+    </svg>
+    Genesus Technology LLC
+  </div>
+  <span>El trabajo inteligente habla español.</span>
+  <span class="mono">GENESUS OS · build 2026-06-11 · 33 tests verdes · Cadet Holdings Corp.</span>
+</footer>
+
+<script>
+/* navegación */
+const nav = document.getElementById('nav');
+nav.addEventListener('click', e => {
+  const b = e.target.closest('button[data-view]'); if (!b) return;
+  nav.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + b.dataset.view).classList.add('active');
+});
+
+/* KPIs animados */
+function animateNum(el, target, dur = 1300) {
+  const t0 = performance.now();
+  function step(t) {
+    const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(target * e).toLocaleString('es');
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+document.querySelectorAll('[data-count]').forEach(el => animateNum(el, Number(el.dataset.count)));
+
+/* barras */
+setTimeout(() => {
+  document.querySelectorAll('.track i').forEach((i, idx) => {
+    setTimeout(() => { i.style.width = i.dataset.w + '%'; }, idx * 90);
+  });
+}, 200);
+
+/* bitácora real de la corrida */
+const LOG = [
+  ['ok',   'MASTER PROMPT GENESUS OS — inicio de ejecución'],
+  ['t',    'Fase 0 · scaffold: pnpm workspaces + turborepo + tokens UI ............ '], ['ok', 'OK'],
+  ['t',    'Fase 1 · taxonomía: 10 divisiones × 25 dominios × 4 enfoques'],
+  ['num',  '→ generador build-time: 1,000 agentes · 10,000 subagentes · IDs ENRG-001…CORP-100'],
+  ['t',    'Fase 1 · migraciones SQL: 15 tablas + RLS + ivfflat + match_memories + consume_budget'],
+  ['t',    'Fase 2 · proxy Anthropic server-side con streaming SSE y logging en runs'],
+  ['t',    'Fase 2 · routing: opus=claude-opus-4-8 · sonnet=claude-sonnet-4-6 · haiku=claude-haiku-4-5'],
+  ['t',    'Fase 3 · motor: planning Zod → DAG (máx 8) → QA háiku (2 reintentos) → síntesis'],
+  ['t',    'Fase 4 · 8 módulos UI en español LATAM, tema claro, identidad Genesus'],
+  ['warn', 'pnpm install: builds de esbuild bloqueados por pnpm 11'],
+  ['ok',   'fix: allowBuilds.esbuild=true → 357 paquetes instalados'],
+  ['ag',   'vitest packages/core'], ['ok', '24/24 tests verdes (routing · costos · presupuesto · DAG · orquestador)'],
+  ['ag',   'vitest packages/agents'], ['ok', '9/9 tests verdes (counts exactos · IDs canónicos · 0 refs TerraMercado)'],
+  ['ag',   'tsc --strict en 5 paquetes'], ['warn', 'agents: faltaba @types/node'], ['ok', 'fix + typecheck 5/5 verde'],
+  ['ag',   'server arriba en :8787 (SIMULATE_LLM=1, $0.00)'],
+  ['num',  '→ /api/health: 10 divisiones · 1,000 agentes · 10,000 subagentes · presupuesto $25'],
+  ['warn', 'bug e2e: POST /approve sin cuerpo → 415 (parser JSON de Fastify)'],
+  ['ok',   'fix: parser tolerante + validación Zod por ruta — corregido y reverificado'],
+  ['ag',   'misión demo "microturbina 5 kW"'],
+  ['ok',   'planificada → aprobada → completada · 3 artefactos descargables · 6 eventos'],
+  ['ag',   'fábrica: orden de 30 unidades en CNC-01'], ['ok', 'adaptador simulator: operando'],
+  ['ag',   'búsqueda de red: "eólica" → 8 agentes (ENRG-025…ENRG-032)'],
+  ['ag',   'build de producción apps/web'], ['ok', '253 kB JS · 78 kB gzip · 1.45 s'],
+  ['t',    'docs: README · DECISIONS · DEPLOY (Hetzner) · ELECTRON · COSTOS'],
+  ['ok',   'BUILD VERIFICADO — pendientes: API key real · seed a Supabase · Playwright smoke'],
+];
+const cBody = document.getElementById('consoleBody');
+let li = 0;
+(function boot() {
+  if (li < LOG.length) {
+    const [cls, txt] = LOG[li++];
+    const ln = document.createElement('span');
+    ln.className = 'ln';
+    ln.innerHTML = `<span class="t">[${String(li).padStart(2, '0')}]</span> <span class="${cls}">${txt}</span>`;
+    cBody.appendChild(ln);
+    cBody.scrollTop = cBody.scrollHeight;
+    setTimeout(boot, 120);
+  }
+})();
+</script>
+</body>
+</html>

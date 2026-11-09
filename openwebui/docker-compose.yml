@@ -1,0 +1,23 @@
+# Open WebUI conectado a GENESUS OS (no a Anthropic directo).
+# Arranque:  docker compose -f openwebui/docker-compose.yml up -d
+# Luego abre http://localhost:3000 — el modelo "genesus-personal" ya aparece.
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: genesus-openwebui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # El backend de GENESUS expone una API compatible OpenAI en /v1
+      - OPENAI_API_BASE_URL=http://host.docker.internal:8787/v1
+      - OPENAI_API_KEY=genesus-local
+      - WEBUI_NAME=GENESUS Personal
+      - ENABLE_OLLAMA_API=false
+    volumes:
+      - genesus-openwebui:/app/backend/data
+
+volumes:
+  genesus-openwebui:

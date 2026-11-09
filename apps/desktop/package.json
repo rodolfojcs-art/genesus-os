@@ -1,0 +1,41 @@
+{
+  "name": "@genesus/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GENESUS OS — aplicación de escritorio (Electron)",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win --x64"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.genesustech.os",
+    "productName": "GENESUS OS",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "icon.png"
+    ],
+    "extraResources": [
+      { "from": "../../apps/web/dist", "to": "web-dist" },
+      { "from": "../../apps/server/dist-bundle", "to": "server" }
+    ],
+    "win": {
+      "target": ["dir"],
+      "icon": "icon.png",
+      "artifactName": "GENESUS-OS-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
+  }
+}
