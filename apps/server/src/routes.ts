@@ -413,7 +413,7 @@ export async function registerRoutes(app: FastifyInstance, deps: AppDeps): Promi
   const DocCreateSchema = z.object({
     kind: z.enum(['docx', 'xlsx', 'pptx', 'pdf']),
     filename: z.string().max(160).optional(),
-    spec: z.record(z.unknown()),
+    spec: z.record(z.string(), z.unknown()),
   });
   app.post('/api/docs/create', async (req, reply) => {
     const parsed = DocCreateSchema.safeParse(req.body);
@@ -469,7 +469,7 @@ export async function registerRoutes(app: FastifyInstance, deps: AppDeps): Promi
   // ====================================================== FLUJOS DE NEGOCIO
   const EjecutarFlujoSchema = z.object({
     flow: z.enum(FLOW_NAMES),
-    params: z.record(z.unknown()).default({}),
+    params: z.record(z.string(), z.unknown()).default({}),
   });
   app.post('/api/flujo/ejecutar', async (req, reply) => {
     const parsed = EjecutarFlujoSchema.safeParse(req.body);

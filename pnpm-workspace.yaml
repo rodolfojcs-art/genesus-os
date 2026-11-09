@@ -4,3 +4,11 @@ packages:
 allowBuilds:
   electron: true
   esbuild: true
+
+# Overrides de seguridad. En pnpm 11 el campo "pnpm" de package.json ya NO se
+# lee (lo avisa el propio install); los overrides viven aqui.
+#   uuid       exceljs arrastra 8.3.2; el fallo esta en v3/v5/v6 con `buf`.
+#   image-size pptxgenjs arrastra 1.2.1; DoS en parsers JXL/HEIF/ICNS.
+overrides:
+  uuid: ^11.1.1
+  image-size: ^2.0.3

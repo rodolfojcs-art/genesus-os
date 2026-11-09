@@ -9,7 +9,7 @@
     "build:win": "electron-builder --win --x64"
   },
   "devDependencies": {
-    "electron": "^33.2.0",
+    "electron": "^33.4.11",
     "electron-builder": "^25.1.8"
   },
   "build": {
@@ -24,11 +24,19 @@
       "icon.png"
     ],
     "extraResources": [
-      { "from": "../../apps/web/dist", "to": "web-dist" },
-      { "from": "../../apps/server/dist-bundle", "to": "server" }
+      {
+        "from": "../../apps/web/dist",
+        "to": "web-dist"
+      },
+      {
+        "from": "../../apps/server/dist-bundle",
+        "to": "server"
+      }
     ],
     "win": {
-      "target": ["dir"],
+      "target": [
+        "dir"
+      ],
       "icon": "icon.png",
       "artifactName": "GENESUS-OS-Setup-${version}.${ext}"
     },

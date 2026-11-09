@@ -17,8 +17,8 @@
     "desktop:dist": "pnpm desktop:bundle && pnpm --filter @genesus/desktop build:win"
   },
   "devDependencies": {
-    "esbuild": "^0.24.0",
-    "turbo": "^2.3.3",
-    "typescript": "^5.6.3"
+    "esbuild": "^0.24.2",
+    "turbo": "^2.11.10",
+    "typescript": "^5.9.3"
   }
 }
