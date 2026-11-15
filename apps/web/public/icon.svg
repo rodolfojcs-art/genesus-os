@@ -1,9 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#0B0B12"/>
-  <g transform="translate(118,150)">
-    <rect x="0"   y="40"  width="38" height="172" rx="19" fill="#6366F1"/>
-    <rect x="62"  y="0"   width="38" height="212" rx="19" fill="#14B8A6"/>
-    <rect x="124" y="64"  width="38" height="148" rx="19" fill="#F59E0B"/>
-    <rect x="186" y="24"  width="38" height="188" rx="19" fill="#F43F5E"/>
+<!--
+  Icono de GENESUS OS. Poligonos copiados de packages/ui/src/Logo.tsx, que
+  lleva la spec definitiva ("NUNCA modificar las coordenadas"). El logo
+  original vive en un viewBox 0 0 300 295; aqui va centrado sobre el fondo
+  de marca, dejando margen para la mascara de Android.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#14121F"/>
+  <g transform="translate(97.28,100.18) scale(1.0581)">
+    <polygon points="67,65 93,65 46,195 20,195" fill="#7B68FF"/>
+    <polygon points="149,50 175,50 108,235 82,235" fill="#00D4A0"/>
+    <polygon points="188,148 214,148 174,258 148,258" fill="#FFC040"/>
+    <polygon points="242,200 268,200 241,275 215,275" fill="#F06292"/>
   </g>
 </svg>

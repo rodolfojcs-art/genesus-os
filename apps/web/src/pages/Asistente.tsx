@@ -643,141 +643,25 @@ export function Asistente() {
             <span className="ml-1 text-muted">{toolsOpen ? '▾' : '▴'}</span>
           </button>
         </div>
-      </aside>
-
-      {/* ───────── Centro: conversación completa + input ───────── */}
-      <section className="flex min-w-0 flex-1 flex-col rounded-card border border-line bg-bg">
-        {/* Cabecera mínima: solo la hamburguesa y el título del hilo. */}
-        <div className="flex items-center gap-2 border-b border-line px-3 py-2">
-          <button
-            className="rounded-lg p-2 leading-none text-fg hover:bg-surface2"
-            onClick={() => setMenuOpen(true)}
-            aria-label="Abrir menú"
-          >
-            <span className="block h-0.5 w-5 bg-current" />
-            <span className="mt-1 block h-0.5 w-5 bg-current" />
-            <span className="mt-1 block h-0.5 w-5 bg-current" />
-          </button>
-          <span className="min-w-0 flex-1 truncate text-sm font-semibold">
-            {conversations.data?.find((c) => c.id === activeId)?.title ?? 'GENESUS Personal'}
-          </span>
-          <button
-            className="rounded-lg px-2 py-1 text-lg leading-none text-muted hover:bg-surface2 hover:text-fg"
-            onClick={newConversation}
-            aria-label="Nueva conversación"
-          >
-            +
-          </button>
-        </div>
-        <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
-          {empty && (
-            <div className="flex h-full flex-col items-center justify-center text-center">
-              <h2 className="font-display text-2xl font-extrabold">GENESUS Personal</h2>
-              <p className="mt-2 max-w-md text-sm text-muted">
-                Tu IA personal con memoria permanente, búsqueda web con fuentes, ejecución de código y
-                vigías proactivos. Escribe abajo para empezar.
-              </p>
-              <button
-                className="btn-primary mt-5 !py-2 text-sm"
-                onClick={() => void loadBriefing()}
-                disabled={briefing.loading}
-              >
-                {briefing.loading ? 'Preparando tu briefing…' : '📰 Briefing de hoy (noticias en vivo)'}
-              </button>
-              {briefing.error && <p className="mt-3 text-xs text-rose">{briefing.error}</p>}
-              {briefing.text && (
-                <div className="mt-4 max-h-[52vh] w-full max-w-2xl overflow-y-auto whitespace-pre-wrap rounded-2xl border border-line bg-surface px-5 py-4 text-left text-sm leading-relaxed">
-                  {briefing.text}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeId && messages.isLoading && <Spinner />}
-
-          {persisted.map((m) => (
-            <Bubble
-              key={m.id}
-              role={m.role}
-              meta={
-                m.role === 'assistant' ? (
-                  <div className="mb-1 flex items-center gap-2 font-mono text-[10px] text-muted">
-                    {m.meta.department && <span className="text-indigo">{m.meta.department}</span>}
-                    {m.meta.grounded && <Pill value="con fuentes" />}
-                    {supportsVoice && (
-                      <button
-                        className="ml-auto rounded px-1 text-sm hover:bg-surface2"
-                        title="Leer en voz alta"
-                        onClick={() => speakText(m.content)}
-                      >
-                        🔊
-                      </button>
-                    )}
-                  </div>
-                ) : undefined
-              }
-            >
-              {m.content}
-              {m.role === 'assistant' && m.meta.citations && <Citations items={m.meta.citations} />}
-            </Bubble>
-          ))}
-
-          {/* Turno en vivo (streaming) */}
-          {live && (
-            <>
-              <Bubble role="user">{live.question}</Bubble>
-              <Bubble
-                role="assistant"
-                meta={
-                  live.department || live.council || live.model || live.unsaved ? (
-                    <div className="mb-1 flex flex-wrap items-center gap-2 font-mono text-[10px] text-muted">
-                      {live.department && <span className="text-indigo">{live.department}</span>}
-                      {live.grounded && <Pill value="con fuentes" />}
-                      {live.unsaved && (
-                        <span className="rounded-full bg-[#B07F12]/15 px-1.5 py-0.5 text-[#B07F12]" title="La memoria no respondió: esta respuesta no quedó guardada">
-                          ⚠ sin guardar
-                        </span>
-                      )}
-                      {live.council?.map((c) => (
-                        <span
-                          key={c.model}
-                          className={`rounded-full px-1.5 py-0.5 ${c.ok ? 'bg-teal/15 text-teal' : 'bg-surface2 text-muted line-through'}`}
-                          title={`${c.provider} · ${c.latencyMs} ms`}
-                        >
-                          {c.provider}
-                        </span>
-                      ))}
-                      {live.model && !live.streaming && <span className="opacity-70">via {live.model}</span>}
-                    </div>
-                  ) : undefined
-                }
-              >
-                {live.error ? (
-                  <span className="text-rose">{live.error}</span>
-                ) : live.answer ? (
-                  <>
-                    {live.answer}
-                    {live.streaming && <span className="animate-pulse text-indigo">▋</span>}
-                    {live.citations && <Citations items={live.citations} />}
-                  </>
-                ) : (
-                  <span className="text-muted">{live.status ?? 'Pensando…'}</span>
-                )}
-              </Bubble>
-              {live.unsaved && !live.streaming && (
-                <p className="text-center text-[11px] text-[#B07F12]">
-                  ⚠ No se pudo guardar esta conversación (memoria no disponible). La respuesta se ve pero no
-                  quedará en tu historial — revisa tu conexión e inténtalo de nuevo en un momento.
-                </p>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Input siempre disponible */}
+        {/* Ajustes del chat. Viven aqui, no en la pantalla principal: ahi solo
+            queda la conversacion y la barra de escritura. */}
         <div className="border-t border-line p-3">
+          <span className="mb-2 block font-mono text-[10px] uppercase tracking-wide text-muted">Ajustes</span>
+          <button
+            className="btn btn-ghost mb-2 w-full justify-center !py-1.5 text-xs"
+            onClick={() => { setMenuOpen(false); void loadBriefing(); }}
+          >
+            {briefing.loading ? 'Preparando tu briefing…' : '📰 Briefing de hoy'}
+          </button>
           {supportsVoice && (
             <div className="mb-2 flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => (voice.listening ? voice.stopListening() : voice.startListening())}
+                className={`btn !py-1.5 text-xs ${voice.listening ? 'bg-teal text-white' : 'btn-ghost'}`}
+                title="Dictar: hablas y se escribe en la barra"
+              >
+                {voice.listening ? '● Dictando…' : '🎤 Dictar'}
+              </button>
               <button
                 onClick={toggleVoiceMode}
                 className={`btn !py-1.5 text-xs ${voiceMode ? 'bg-teal text-white' : 'btn-ghost'}`}
@@ -870,6 +754,133 @@ export function Asistente() {
               ))}
             </div>
           </div>
+        </div>
+      </aside>
+
+      {/* ───────── Centro: conversación completa + input ───────── */}
+      <section className="flex min-w-0 flex-1 flex-col rounded-card border border-line bg-bg">
+        {/* Cabecera mínima: solo la hamburguesa y el título del hilo. */}
+        <div className="flex items-center gap-2 border-b border-line px-3 py-2">
+          <button
+            className="rounded-lg p-2 leading-none text-fg hover:bg-surface2"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Abrir menú"
+          >
+            <span className="block h-0.5 w-5 bg-current" />
+            <span className="mt-1 block h-0.5 w-5 bg-current" />
+            <span className="mt-1 block h-0.5 w-5 bg-current" />
+          </button>
+          <span className="min-w-0 flex-1 truncate text-sm font-semibold">
+            {conversations.data?.find((c) => c.id === activeId)?.title ?? 'GENESUS Personal'}
+          </span>
+          <button
+            className="rounded-lg px-2 py-1 text-lg leading-none text-muted hover:bg-surface2 hover:text-fg"
+            onClick={newConversation}
+            aria-label="Nueva conversación"
+          >
+            +
+          </button>
+        </div>
+        <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
+          {empty && (
+            <div className="flex h-full flex-col items-center justify-center text-center">
+              <h2 className="font-display text-2xl font-extrabold">GENESUS Personal</h2>
+              <p className="mt-2 max-w-md text-sm text-muted">
+                Tu IA personal con memoria permanente, búsqueda web con fuentes, ejecución de código y
+                vigías proactivos. Escribe abajo para empezar.
+              </p>
+              {briefing.error && <p className="mt-3 text-xs text-rose">{briefing.error}</p>}
+              {briefing.text && (
+                <div className="mt-4 max-h-[52vh] w-full max-w-2xl overflow-y-auto whitespace-pre-wrap rounded-2xl border border-line bg-surface px-5 py-4 text-left text-sm leading-relaxed">
+                  {briefing.text}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeId && messages.isLoading && <Spinner />}
+
+          {persisted.map((m) => (
+            <Bubble
+              key={m.id}
+              role={m.role}
+              meta={
+                m.role === 'assistant' ? (
+                  <div className="mb-1 flex items-center gap-2 font-mono text-[10px] text-muted">
+                    {m.meta.department && <span className="text-indigo">{m.meta.department}</span>}
+                    {m.meta.grounded && <Pill value="con fuentes" />}
+                    {supportsVoice && (
+                      <button
+                        className="ml-auto rounded px-1 text-sm hover:bg-surface2"
+                        title="Leer en voz alta"
+                        onClick={() => speakText(m.content)}
+                      >
+                        🔊
+                      </button>
+                    )}
+                  </div>
+                ) : undefined
+              }
+            >
+              {m.content}
+              {m.role === 'assistant' && m.meta.citations && <Citations items={m.meta.citations} />}
+            </Bubble>
+          ))}
+
+          {/* Turno en vivo (streaming) */}
+          {live && (
+            <>
+              <Bubble role="user">{live.question}</Bubble>
+              <Bubble
+                role="assistant"
+                meta={
+                  live.department || live.council || live.model || live.unsaved ? (
+                    <div className="mb-1 flex flex-wrap items-center gap-2 font-mono text-[10px] text-muted">
+                      {live.department && <span className="text-indigo">{live.department}</span>}
+                      {live.grounded && <Pill value="con fuentes" />}
+                      {live.unsaved && (
+                        <span className="rounded-full bg-[#B07F12]/15 px-1.5 py-0.5 text-[#B07F12]" title="La memoria no respondió: esta respuesta no quedó guardada">
+                          ⚠ sin guardar
+                        </span>
+                      )}
+                      {live.council?.map((c) => (
+                        <span
+                          key={c.model}
+                          className={`rounded-full px-1.5 py-0.5 ${c.ok ? 'bg-teal/15 text-teal' : 'bg-surface2 text-muted line-through'}`}
+                          title={`${c.provider} · ${c.latencyMs} ms`}
+                        >
+                          {c.provider}
+                        </span>
+                      ))}
+                      {live.model && !live.streaming && <span className="opacity-70">via {live.model}</span>}
+                    </div>
+                  ) : undefined
+                }
+              >
+                {live.error ? (
+                  <span className="text-rose">{live.error}</span>
+                ) : live.answer ? (
+                  <>
+                    {live.answer}
+                    {live.streaming && <span className="animate-pulse text-indigo">▋</span>}
+                    {live.citations && <Citations items={live.citations} />}
+                  </>
+                ) : (
+                  <span className="text-muted">{live.status ?? 'Pensando…'}</span>
+                )}
+              </Bubble>
+              {live.unsaved && !live.streaming && (
+                <p className="text-center text-[11px] text-[#B07F12]">
+                  ⚠ No se pudo guardar esta conversación (memoria no disponible). La respuesta se ve pero no
+                  quedará en tu historial — revisa tu conexión e inténtalo de nuevo en un momento.
+                </p>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Input siempre disponible */}
+        <div className="border-t border-line p-3">
           {/* Adjuntos: imágenes (miniaturas) + documentos (chips) */}
           {(images.length > 0 || docs.length > 0) && (
             <div className="mb-2 flex flex-wrap items-center gap-2">
@@ -923,35 +934,42 @@ export function Asistente() {
             >
               +
             </button>
-            {supportsVoice && (
+            {/* La barra de escritura lleva el boton de enviar DENTRO: una flecha
+                en un circulo, pegada al borde derecho. El padding del textarea
+                deja sitio para que el texto no pase por debajo. */}
+            <div className="relative min-w-0 flex-1">
+              <textarea
+                ref={taRef}
+                className="input min-h-[44px] w-full resize-none overflow-y-auto pr-14"
+                style={{ maxHeight: '33vh' }}
+                rows={1}
+                placeholder="Escribe o habla…"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    void send();
+                  }
+                }}
+              />
               <button
-                title={voice.listening ? 'Detener dictado' : 'Dictar por voz'}
-                onClick={() => (voice.listening ? voice.stopListening() : voice.startListening())}
-                className={`grid h-11 w-11 shrink-0 place-items-center rounded-full text-lg transition-colors ${
-                  voice.listening ? 'bg-teal text-white' : 'bg-surface2 text-ink hover:bg-line'
-                }`}
+                className="absolute bottom-[7px] right-[7px] grid h-9 w-9 place-items-center rounded-full bg-indigo text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-35"
+                disabled={busy || (!input.trim() && images.length === 0 && docs.length === 0)}
+                onClick={() => void send()}
+                title="Enviar"
+                aria-label="Enviar"
               >
-                🎤
+                {busy ? (
+                  <span className="text-sm">…</span>
+                ) : (
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <line x1="12" y1="19" x2="12" y2="6" />
+                    <polyline points="6 12 12 6 18 12" />
+                  </svg>
+                )}
               </button>
-            )}
-            <textarea
-              ref={taRef}
-              className="input min-h-[44px] resize-none overflow-y-auto"
-              style={{ maxHeight: '33vh' }}
-              rows={1}
-              placeholder="Escribe, habla o adjunta una imagen a GENESUS… (Enter envía, Shift+Enter salto de línea)"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  void send();
-                }
-              }}
-            />
-            <button className="btn-primary !py-2.5" disabled={busy || (!input.trim() && images.length === 0 && docs.length === 0)} onClick={() => void send()}>
-              {busy ? '…' : 'Enviar'}
-            </button>
+            </div>
           </div>
         </div>
       </section>
