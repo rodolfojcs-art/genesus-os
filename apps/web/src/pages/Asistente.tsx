@@ -158,6 +158,9 @@ export function Asistente() {
   const [busy, setBusy] = useState(false);
   const [drawer, setDrawer] = useState<null | 'memoria' | 'registro' | 'vigias' | 'gbrain' | 'cerebros' | 'pc' | 'artefactos' | 'deshacer' | 'rutinas' | 'disco'>(null);
   const [toolsOpen, setToolsOpen] = useState(false);
+  // Menu hamburguesa: la lista de conversaciones es un panel que se desliza,
+  // no una barra fija. En pantalla solo se ve el chat actual.
+  const [menuOpen, setMenuOpen] = useState(false);
   const [newRoutine, setNewRoutine] = useState({ name: '', instruction: '', every: '' });
   const [diskFolder, setDiskFolder] = useState('');
   const [diskQuery, setDiskQuery] = useState('');
@@ -409,6 +412,7 @@ export function Asistente() {
   }, [messages.data, live?.answer, activeId]);
 
   function newConversation() {
+    setMenuOpen(false);
     setActiveId(null);
     setLive(null);
     setInput('');
@@ -510,8 +514,32 @@ export function Asistente() {
 
   return (
     <div className="relative flex h-[calc(100vh-88px)] gap-3">
-      {/* ───────── Barra lateral (20%): solo chats recientes + menú al pie ───────── */}
-      <aside className="relative flex w-1/5 min-w-[190px] shrink-0 flex-col rounded-card border border-line bg-surface">
+      {/* ───────── Menú (hamburguesa): chats recientes + herramientas ─────────
+          No es una barra fija: se desliza por encima del chat y se cierra al
+          elegir algo, para que en pantalla solo quede la conversación. */}
+      {menuOpen && (
+        <div
+          className="absolute inset-0 z-40 bg-black/40"
+          onClick={() => setMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      <aside
+        className={`absolute left-0 top-0 z-50 flex h-full w-72 max-w-[85vw] flex-col rounded-card border border-line bg-surface shadow-2xl transition-transform duration-200 ${
+          menuOpen ? 'translate-x-0' : '-translate-x-[110%]'
+        }`}
+        aria-hidden={!menuOpen}
+      >
+        <div className="flex items-center justify-between border-b border-line px-3 py-2">
+          <span className="font-mono text-[10px] uppercase tracking-wide text-muted">Menú</span>
+          <button
+            className="rounded p-1 text-lg leading-none text-muted hover:text-fg"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Cerrar menú"
+          >
+            ✕
+          </button>
+        </div>
         {/* Nueva conversación */}
         <div className="p-3 pb-2">
           <button className="btn-primary w-full justify-center !py-2 text-sm" onClick={newConversation}>
@@ -535,7 +563,7 @@ export function Asistente() {
                 activeId === c.id ? 'bg-indigo-soft text-indigo' : 'hover:bg-surface2'
               }`}
             >
-              <button className="flex-1 truncate text-left" onClick={() => { setActiveId(c.id); setLive(null); }}>
+              <button className="flex-1 truncate text-left" onClick={() => { setActiveId(c.id); setLive(null); setMenuOpen(false); }}>
                 {c.title}
               </button>
               <button
@@ -619,6 +647,28 @@ export function Asistente() {
 
       {/* ───────── Centro: conversación completa + input ───────── */}
       <section className="flex min-w-0 flex-1 flex-col rounded-card border border-line bg-bg">
+        {/* Cabecera mínima: solo la hamburguesa y el título del hilo. */}
+        <div className="flex items-center gap-2 border-b border-line px-3 py-2">
+          <button
+            className="rounded-lg p-2 leading-none text-fg hover:bg-surface2"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Abrir menú"
+          >
+            <span className="block h-0.5 w-5 bg-current" />
+            <span className="mt-1 block h-0.5 w-5 bg-current" />
+            <span className="mt-1 block h-0.5 w-5 bg-current" />
+          </button>
+          <span className="min-w-0 flex-1 truncate text-sm font-semibold">
+            {conversations.data?.find((c) => c.id === activeId)?.title ?? 'GENESUS Personal'}
+          </span>
+          <button
+            className="rounded-lg px-2 py-1 text-lg leading-none text-muted hover:bg-surface2 hover:text-fg"
+            onClick={newConversation}
+            aria-label="Nueva conversación"
+          >
+            +
+          </button>
+        </div>
         <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-5 py-5">
           {empty && (
             <div className="flex h-full flex-col items-center justify-center text-center">

@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { topologicalLayers } from '@genesus/core';
 import { env, hasAnthropic, hasSupabase } from './env.js';
-import { rateLimitOk } from './auth.js';
+import { rateLimitOk, isLocalRequest } from './auth.js';
 import { BudgetCutoffError, recentRuns, streamCompletion, councilCompletion, brainInventory } from './llm.js';
 import { runCommand, openApp, listDir, pcControlEnabled, listUndo, undoAction } from './pcControl.js';
 import { pcAgent } from './pcAgent.js';
@@ -987,6 +987,26 @@ y sugiérele crear una misión formal desde el módulo Misiones para activar la 
     if (!req.url.startsWith('/api/') || req.url === '/api/health') return;
     if (!rateLimitOk(req.userId || req.ip)) {
       await reply.code(429).send({ error: 'Demasiadas solicitudes, espera un minuto' });
+      return;
+    }
+
+    // Control del PC: cerrado desde fuera salvo que se pida explicitamente.
+    //
+    // /api/pc/run ejecuta PowerShell y /api/docs/create escribe archivos. Con
+    // el servidor publicado eso seria ejecucion remota de codigo en la maquina
+    // de casa. No basta mirar la IP: un tunel (cloudflared, ngrok) se conecta a
+    // localhost y sus peticiones PARECEN locales — por eso tambien se mira si
+    // vienen con cabeceras de proxy.
+    const esRutaDePC = req.url.startsWith('/api/pc/') || req.url.startsWith('/api/docs/');
+    if (!esRutaDePC) return;
+    const porProxy = Boolean(req.headers['x-forwarded-for'] || req.headers['cf-connecting-ip']);
+    const remota = porProxy || !isLocalRequest(req);
+    if (remota && !env.PC_CONTROL_REMOTE) {
+      await reply.code(403).send({
+        error:
+          'El control del PC y la creacion de archivos solo funcionan desde esta maquina. ' +
+          'Para habilitarlo en remoto pon PC_CONTROL_REMOTE=1 en el .env (entendiendo el riesgo).',
+      });
     }
   });
 }

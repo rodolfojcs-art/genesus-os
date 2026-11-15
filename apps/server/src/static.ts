@@ -13,6 +13,9 @@ const MIME: Record<string, string> = {
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  // El manifest DEBE ir con su tipo propio: servido como octet-stream,
+  // Chrome puede descartarlo y la app deja de ser instalable en Android.
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',

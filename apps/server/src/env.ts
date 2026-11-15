@@ -97,6 +97,23 @@ const EnvSchema = z.object({
   // ── Control del PC (agente de escritorio) ───────────────────────────────
   /** Habilita que GENESUS ejecute acciones en el PC (con salvaguardas). */
   PC_CONTROL_ENABLED: boolFlag(false),
+
+  // -- Acceso remoto (telefono / internet) ---------------------------------
+  /**
+   * Llave de acceso a la API. Si se define, TODA peticion a /api (salvo
+   * /api/health) debe traerla en la cabecera `x-genesus-token`. Sin esto el
+   * servidor es abierto: authenticate() sin token no rechaza, devuelve el
+   * usuario local fijo y deja pasar. Imprescindible antes de exponerlo.
+   */
+  GENESUS_ACCESS_TOKEN: z.string().optional().or(z.literal('').transform(() => undefined)),
+  /**
+   * Permite controlar el PC desde fuera de esta maquina. APAGADO por defecto:
+   * /api/pc/run ejecuta PowerShell, y con la app publicada en internet eso
+   * seria ejecucion remota de codigo. Solo enciendelo si sabes lo que haces.
+   */
+  PC_CONTROL_REMOTE: boolFlag(false),
+  /** Origenes permitidos por CORS, separados por coma. Vacio = mismo origen. */
+  GENESUS_ALLOWED_ORIGINS: z.string().optional().or(z.literal('').transform(() => undefined)),
 });
 
 export const env = EnvSchema.parse(process.env);
@@ -111,3 +128,11 @@ export const hasSupabase = Boolean(
   env.SUPABASE_URL && (env.SUPABASE_SERVICE_KEY || env.SUPABASE_ANON_KEY),
 );
 export const hasAnthropic = Boolean(env.ANTHROPIC_API_KEY);
+
+/** ¿El servidor exige llave de acceso? Sin esto, exponerlo a internet es abrirlo. */
+export const hasAccessToken = Boolean(env.GENESUS_ACCESS_TOKEN);
+/** Orígenes permitidos por CORS (lista blanca). Vacío = solo mismo origen. */
+export const allowedOrigins = (env.GENESUS_ALLOWED_ORIGINS ?? '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);

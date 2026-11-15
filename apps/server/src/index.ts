@@ -5,7 +5,7 @@ const g = globalThis as unknown as { WebSocket?: unknown };
 if (!g.WebSocket) g.WebSocket = WS;
 
 import Fastify from 'fastify';
-import { env, hasAnthropic, hasSupabase } from './env.js';
+import { env, hasAnthropic, hasSupabase, hasAccessToken, allowedOrigins } from './env.js';
 import { authenticate } from './auth.js';
 import { createBudgetGateway } from './budget.js';
 import { createLlmCaller } from './llm.js';
@@ -20,6 +20,7 @@ import { registerStatic } from './static.js';
 import { hydrateFromSupabase, networkCounts } from './registry.js';
 import { registerRoutes } from './routes.js';
 import { supabaseReachable } from './supabase.js';
+import { requireAccessToken } from './auth.js';
 
 async function main(): Promise<void> {
   // bodyLimit 30 MB: permite enviar imágenes (base64) para razonamiento multimodal.
@@ -41,9 +42,16 @@ async function main(): Promise<void> {
   });
 
   // CORS (manual, sin dependencias extra)
+  // Lista blanca. Antes se reflejaba cualquier `origin` (o '*'), lo que deja a
+  // cualquier web llamar a esta API desde el navegador del usuario. El mismo
+  // origen (la PWA que sirve este propio servidor) no necesita CORS.
   app.addHook('onRequest', async (req, reply) => {
-    reply.header('access-control-allow-origin', (req.headers.origin as string | undefined) ?? '*');
-    reply.header('access-control-allow-headers', 'authorization, content-type');
+    const origin = req.headers.origin as string | undefined;
+    if (origin && allowedOrigins.includes(origin)) {
+      reply.header('access-control-allow-origin', origin);
+      reply.header('vary', 'Origin');
+    }
+    reply.header('access-control-allow-headers', 'authorization, content-type, x-genesus-token');
     reply.header('access-control-allow-methods', 'GET,POST,PATCH,DELETE,OPTIONS');
     if (req.method === 'OPTIONS') {
       await reply.code(204).send();
@@ -55,6 +63,9 @@ async function main(): Promise<void> {
   app.decorateRequest('userToken', null);
   app.addHook('preHandler', async (req, reply) => {
     if (!req.url.startsWith('/api/') || req.url === '/api/health') return;
+    // Puerta de acceso ANTES de nada: sin llave valida no se llega ni a
+    // identificar al usuario.
+    if (!(await requireAccessToken(req, reply))) return; // 401 ya enviado
     const auth = await authenticate(req, reply);
     if (!auth) return; // 401 ya enviado
     req.userId = auth.userId;
@@ -98,6 +109,13 @@ async function main(): Promise<void> {
   app.log.info(
     `anthropic=${hasAnthropic ? 'ok' : env.SIMULATE_LLM ? 'SIMULADO' : 'SIN CONFIGURAR'} · supabase=${sbLabel} · cola=${queue.kind} · presupuesto diario=$${env.BUDGET_DAILY_USD}`,
   );
+  if (!hasAccessToken) {
+    app.log.warn(
+      'SIN LLAVE DE ACCESO (GENESUS_ACCESS_TOKEN vacia): la API responde a quien sea ' +
+        'que alcance este puerto. Vale mientras solo escuche en casa; NO publiques el ' +
+        'servidor (tunel, VPS, port forwarding) sin definirla primero.',
+    );
+  }
   if (hasSupabase && !sb.ok) {
     app.log.warn(
       `MEMORIA PERMANENTE NO DISPONIBLE: Supabase no responde (${sb.detail}). ` +

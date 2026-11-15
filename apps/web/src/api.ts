@@ -8,11 +8,64 @@ const API_BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
 export const supabase: SupabaseClient | null =
   SUPABASE_URL && SUPABASE_ANON ? createClient(SUPABASE_URL, SUPABASE_ANON) : null;
 
+// ---------------------------------------------------------------------------
+// Llave de acceso al servidor propio (GENESUS_ACCESS_TOKEN).
+//
+// Con el servidor publicado (tunel, VPS) toda peticion a /api la exige. Se
+// guarda una vez en el navegador: la app del telefono se abre la primera vez
+// con `?t=<llave>`, la guarda y limpia la URL — una direccion con el secreto
+// dentro acaba en el historial, en los logs del tunel y en lo que se comparte
+// por error.
+// ---------------------------------------------------------------------------
+const TOKEN_KEY = 'genesus_access_token';
+
+function leerLlaveDeLaUrl(): string | null {
+  try {
+    const url = new URL(window.location.href);
+    const t = url.searchParams.get('t');
+    if (!t) return null;
+    url.searchParams.delete('t');
+    window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+    return t;
+  } catch {
+    return null;
+  }
+}
+
+export function guardarLlave(t: string): void {
+  try {
+    localStorage.setItem(TOKEN_KEY, t);
+  } catch {
+    /* navegacion privada: se volvera a pedir */
+  }
+}
+
+export function obtenerLlave(): string | null {
+  const deUrl = leerLlaveDeLaUrl();
+  if (deUrl) {
+    guardarLlave(deUrl);
+    return deUrl;
+  }
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Cabeceras de identidad. Punto unico: las cinco llamadas del cliente pasan por
+ * aqui, asi que la llave de acceso viaja en todas sin tocar cada fetch.
+ */
 async function authHeader(): Promise<Record<string, string>> {
-  if (!supabase) return {};
+  const headers: Record<string, string> = {};
+  const llave = obtenerLlave();
+  if (llave) headers['x-genesus-token'] = llave;
+  if (!supabase) return headers;
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
-  return token ? { authorization: `Bearer ${token}` } : {};
+  if (token) headers.authorization = `Bearer ${token}`;
+  return headers;
 }
 
 export class ApiError extends Error {
